@@ -1,6 +1,7 @@
-# Proto Parser
+# Proto Parser and URDF Converter
 
 This module provides functionality to parse and manipulate a robot structure from a proto file.
+Since the convert urdf to proto file just simply used urdf2webots libarary, we put focus on proto_praser. The simple libarary to read and adjust proto file.
 
 ## Classes
 
@@ -94,3 +95,62 @@ Represents a container in the robot structure.
 ## Usage
 
 The script can be run as a standalone program to open a proto file, parse it, and save the modified robot structure.
+
+# Example
+For current usage, we are going to replace the empty links and change endpoint soild into endpoint solid reference.
+```python 
+import proto_praser as *
+from tkinter import Tk     # from tkinter import Tk for Python 3.x
+
+
+if __name__ == "__main__":
+    # open a file dialog to select the proto file
+    Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing
+    proto_file = askopenfilename() #open file to edit
+    
+    # create a robot object
+    robot = proto_robot()
+    robot.read_proto_file(proto_file)   # read the proto file and build the robot structure
+    
+#==============================================================================
+                        # Replace Solid Empty and ADD Reference
+# =============================================================================
+    # search for the endPoint objects
+    l = robot.search("endPoint")
+    
+    # search empty solid and remove some properties
+    for i in l:
+        Reference_Template = Node(name = "endPoint", parent = None, DEF = "SolidReference {")
+        
+        ## Reference Template:
+        ## ==========================================
+        ## SolidReference {
+        ##   SFString solidName ""   # any string
+        ## }
+        ## ==========================================
+        
+        n = i.search("name") #search for name property
+        name = ""
+        
+        if len(n) >= 1: #if name property is found
+            name = n[0].content #get the name
+        
+        # check if the node is a solid and empty
+        if "Solid" in i.DEF and "Empty" in name:
+            robot.set_current(i)
+            name_object = i.search("name")
+            if len(name_object) >= 1:
+                name_object = name_object[0].content
+            else:
+                name_object = None
+            
+            if name_object and "Ref" not in name_object:
+                # print
+                i.DEF = "SolidReference {"
+                i.children = []
+                i.add_child(property(name = "solidName", parent = i, content = name_object[:-1:]+"_Ref\"", stage = i.stage+1))
+    
+    robot.save_robot()
+```
+
+> I chosed Tkinter for user interface, you can just type filepath if you want.
