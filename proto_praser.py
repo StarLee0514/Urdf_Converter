@@ -111,23 +111,30 @@ class proto_robot:
             result_list += child.search(name)
         return result_list
 
-    def save_robot(self):
-        # check wether TK() is already created
-        try:
-            Tk().withdraw()
-        except:
-            pass
+    def save_robot(self, File_path = None):
+        if not File_path:
+            # check wether TK() is already created and if File_path is None
+            try:
+                Tk().withdraw()
+            except:
+                pass
         
         # get robot name
         Proto_Object = self.search("PROTO")[0]
         robot_Name = Proto_Object.DEF.split(" ")[0]
         
-        # open a file dialog to save the robot file
-        save_file = asksaveasfilename( defaultextension=".proto", filetypes=[("Proto files", "*.proto"), ("All Files", "*.*")])
+        if not File_path:
+            # open a file dialog to save the robot file
+            save_file = asksaveasfilename( defaultextension=".proto", filetypes=[("Proto files", "*.proto"), ("All Files", "*.*")])
+        else:
+            save_file = File_path
+        
         save_file_name = os.path.basename(save_file).split(".")[0]
-        print(robot_Name)
-        print(save_file_name)
-        print(Proto_Object.DEF)
+        
+        # print(robot_Name)
+        # print(save_file_name)
+        # print(Proto_Object.DEF)
+        
         Proto_Object.DEF = Proto_Object.DEF.replace(robot_Name, save_file_name)
         Proto_Object.children[2].content = Proto_Object.children[2].content.replace(robot_Name, save_file_name)
         with open(save_file, 'w') as f:
