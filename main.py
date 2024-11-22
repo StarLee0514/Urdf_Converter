@@ -5,6 +5,8 @@ from tkinter.filedialog import askdirectory
 import os
 import json
 import shutil
+import proto_praser as proto
+
 Folder_Object = {'Dir': {}, 'File': []}
 
 
@@ -67,3 +69,40 @@ with open(proto_Filename, 'r', encoding='utf-8') as file:
 with open(proto_Filename, 'w', encoding='utf-8') as file:
     file.writelines(datas)
 
+# ================== Solid Reference ==================
+proto_bot = proto.proto_robot(proto_filename = proto_Filename)
+l = proto_bot.search("endPoint")
+
+# search empty solid and remove some properties
+for i in l:
+    Reference_Template = proto.Node(name = "endPoint", parent = None, DEF = "SolidReference {")
+    
+    ## Reference Template:
+    ## ==========================================
+    ## SolidReference {
+    ##   SFString solidName ""   # any string
+    ## }
+    ## ==========================================
+    
+    n = i.search("name") #search for name property
+    name = ""
+    
+    if len(n) >= 1: #if name property is found
+        name = n[0].content #get the name
+    
+    # check if the node is a solid and empty
+    if "Solid" in i.DEF and "Empty" in name:
+        name_object = i.search("name")
+        if len(name_object) >= 1:
+            name_object = name_object[0].content
+        else:
+            name_object = None
+        
+        if name_object and "Ref" not in name_object:
+            # print
+            i.DEF = "SolidReference {"
+            i.children = []
+            i.add_child(property(name = "solidName", parent = i, content = name_object[:-1:]+"_Ref\"", stage = i.stage+1))
+
+# save the proto file
+proto_bot.save(proto_Filename)
