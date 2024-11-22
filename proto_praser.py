@@ -44,11 +44,13 @@ import os
 import json
 
 class proto_robot:
-    def __init__(self):
+    def __init__(self, proto_filename = None):
         self.header = ""
         self.children = []
         self.cursor = self
         self.parent = self      # parent of the root is itself
+        if proto_filename:
+            self.read_proto_file(proto_filename)
 
     # add child to the current node
     def add_child(self, child):
