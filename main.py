@@ -9,10 +9,10 @@ import proto_praser as proto
 
 Folder_Object = {'Dir': {}, 'File': []}
 
-
+# ================== File Browser ==================
 Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing
-
 input_path = askdirectory() # show an "Open" dialog box and return the path to the selected file
+
 # lookup all the files and folders in the input_path
 for root, dirs, files in os.walk(input_path):
     rt = os.path.relpath(root, input_path)
@@ -37,16 +37,20 @@ for root, dirs, files in os.walk(input_path):
 file_name = list(filter(lambda x: ".urdf" in x,Folder_Object["Dir"]["urdf"]["File"]))[0]    # get the urdf file name
 Urdf_File = os.path.join(input_path, "urdf", file_name ).replace("\\", "/")                 # get the urdf file path
 mesh_path = os.path.join(input_path, "meshes").replace("\\", "/")                           # get the mesh path
+texture_path = os.path.join(input_path, "textures").replace("\\", "/")                      # get the texture path
 
 output_path = askdirectory() # show an "Open" dialog box and return the path to the selected file
 
-# setup mesh file to relative path with the output_path
+# setup mesh file and texture to relative path with the output_path
 try:
     # Copy the mesh_path folder and its contents to the output_path
     shutil.copytree(mesh_path, os.path.join(output_path, "meshes"))
+    # Copy the texture_path folder and its contents to the output_path
+    shutil.copytree(texture_path, os.path.join(output_path, "textures"))
 except Exception as e:
     print(e)
 
+# ================== Convert URDF to PROTO ==================
 # convert the urdf file to proto file
 proto_Filename = file_name.replace(".urdf", ".proto").replace("_", "")          # remove the "_" in the filename
 proto_Filename = os.path.join(output_path, proto_Filename).replace('\\', '/')   # replace the backslash to slash
@@ -56,15 +60,19 @@ l = convertUrdfFile(input = Urdf_File , output = output_path)                   
 with open(proto_Filename, 'r', encoding='utf-8') as file:
     datas = file.readlines()
     # print(datas)
-    for i in range(len(datas)):
-        l = datas[i]
-        if "url" in l:
-            l = l.replace("\\", "/")
-            if mesh_path in l:
-                print(l)
-                l = l.replace(mesh_path, './meshes')
-                print(l)
-            datas[i] = l
+    try:
+        for i in range(len(datas)):
+            l = datas[i]
+            if "url" in l:
+                l = l.replace("\\", "/")
+                if mesh_path in l:
+                    # print(l)
+                    l = l.replace(mesh_path, './meshes')    # replace the mesh path to relative path
+                    # l = l.replace
+                    # print(l)
+                datas[i] = l
+    except Exception as e:
+        print("error occurs:\t", e)
 
 with open(proto_Filename, 'w', encoding='utf-8') as file:
     file.writelines(datas)
@@ -102,7 +110,7 @@ for i in l:
             # print
             i.DEF = "SolidReference {"
             i.children = []
-            i.add_child(property(name = "solidName", parent = i, content = name_object[:-1:]+"_Ref\"", stage = i.stage+1))
+            i.add_child(proto.property(name = "solidName", parent = i, content = name_object[:-1:]+"_Ref\"", stage = i.stage+1))
 
 # save the proto file
-proto_bot.save(proto_Filename)
+proto_bot.save_robot(proto_Filename)
