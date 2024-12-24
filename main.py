@@ -12,6 +12,8 @@ Folder_Object = {'Dir': {}, 'File': []}
 # ================== File Browser ==================
 Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing
 input_path = askdirectory() # show an "Open" dialog box and return the path to the selected file
+folder_name = input_path.split(r"/")[-1] # get the file name
+print("Selected Folder: ", folder_name)
 
 # lookup all the files and folders in the input_path
 for root, dirs, files in os.walk(input_path):
@@ -44,9 +46,9 @@ output_path = askdirectory() # show an "Open" dialog box and return the path to 
 # setup mesh file and texture to relative path with the output_path
 try:
     # Copy the mesh_path folder and its contents to the output_path
-    shutil.copytree(mesh_path, os.path.join(output_path, "meshes"))
+    shutil.copytree(mesh_path, os.path.join(output_path, "meshes_"+folder_name))
     # Copy the texture_path folder and its contents to the output_path
-    shutil.copytree(texture_path, os.path.join(output_path, "textures"))
+    shutil.copytree(texture_path, os.path.join(output_path, "textures_"+folder_name))
 except Exception as e:
     print(e)
 
@@ -67,7 +69,7 @@ with open(proto_Filename, 'r', encoding='utf-8') as file:
                 l = l.replace("\\", "/")
                 if mesh_path in l:
                     # print(l)
-                    l = l.replace(mesh_path, './meshes')    # replace the mesh path to relative path
+                    l = l.replace(mesh_path, './meshes_'+folder_name)    # replace the mesh path to relative path
                     # l = l.replace
                     # print(l)
                 datas[i] = l
