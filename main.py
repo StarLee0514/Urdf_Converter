@@ -114,5 +114,19 @@ for i in l:
             i.children = []
             i.add_child(proto.property(name = "solidName", parent = i, content = name_object[:-1:]+"_Ref\"", stage = i.stage+1))
 
+# ================== Motor Torque Setting ==================
+l = proto_bot.search("RotationalMotor")     # search for RotationalMotor node
+
+for i in l:
+    t = i.search("maxTorque")
+    Reference_Template = proto.property(name = "maxTorque", parent = t[0].parent, content = "0.001", stage = t[0].stage)
+    if t[0].stage >6:
+        temp = i
+        proto_bot.set_current(t[0])
+        proto_bot.cursor.update(Reference_Template)   # replace the maxTorque property with the Reference_Template
+        proto_bot.set_current(temp)
+    # t = i.search("maxTorque")   
+    # print("content: ",t[0],"\tstage: ",t[0].stage, "\tparent name: ",t[0].parent.search("name")[0])
+
 # save the proto file
 proto_bot.save_robot(proto_Filename)
