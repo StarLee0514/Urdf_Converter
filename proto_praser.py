@@ -305,44 +305,66 @@ if __name__ == "__main__":
     robot = proto_robot()
     robot.read_proto_file(proto_file)   # read the proto file and build the robot structure
     
-#==============================================================================
-                        # Replace Solid Empty and ADD Reference
-# =============================================================================
-    # search for the endPoint objects
-    l = robot.search("endPoint")
+# #==============================================================================
+#                         # Replace Solid Empty and ADD Reference
+# # =============================================================================
+#     # search for the endPoint objects
+#     l = robot.search("endPoint")
     
-    # search empty solid and remove some properties
-    for i in l:
-        Reference_Template = Node(name = "endPoint", parent = None, DEF = "SolidReference {")
+#     # search empty solid and remove some properties
+#     for i in l:
+#         Reference_Template = Node(name = "endPoint", parent = None, DEF = "SolidReference {")
         
-        ## Reference Template:
-        ## ==========================================
-        ## SolidReference {
-        ##   SFString solidName ""   # any string
-        ## }
-        ## ==========================================
+#         ## Reference Template:
+#         ## ==========================================
+#         ## SolidReference {
+#         ##   SFString solidName ""   # any string
+#         ## }
+#         ## ==========================================
         
-        n = i.search("name") #search for name property
-        name = ""
+#         n = i.search("name") #search for name property
+#         name = ""
         
-        if len(n) >= 1: #if name property is found
-            name = n[0].content #get the name
+#         if len(n) >= 1: #if name property is found
+#             name = n[0].content #get the name
         
-        # check if the node is a solid and empty
-        if "Solid" in i.DEF and "Empty" in name:
-            robot.set_current(i)
-            name_object = i.search("name")
-            if len(name_object) >= 1:
-                name_object = name_object[0].content
-            else:
-                name_object = None
+#         # check if the node is a solid and empty
+#         if "Solid" in i.DEF and "Empty" in name:
+#             robot.set_current(i)
+#             name_object = i.search("name")
+#             if len(name_object) >= 1:
+#                 name_object = name_object[0].content
+#             else:
+#                 name_object = None
             
-            if name_object and "Ref" not in name_object:
-                # print
-                i.DEF = "SolidReference {"
-                i.children = []
-                i.add_child(property(name = "solidName", parent = i, content = name_object[:-1:]+"_Ref\"", stage = i.stage+1))
+#             if name_object and "Ref" not in name_object:
+#                 # print
+#                 i.DEF = "SolidReference {"
+#                 i.children = []
+#                 i.add_child(property(name = "solidName", parent = i, content = name_object[:-1:]+"_Ref\"", stage = i.stage+1))
     
+# =============================================================================
+#                         # Motor Torque
+# =============================================================================
+    # search for the RotationalMotor objects
+    l = robot.search("RotationalMotor")     # search for RotationalMotor node
+
+    for i in l:
+        t = i.search("maxTorque")
+        Reference_Template = property(name = "maxTorque", parent = t[0].parent, content = "0.001", stage = t[0].stage)
+        if t[0].stage >6:
+            temp = i
+            robot.set_current(t[0])
+            robot.cursor.update(Reference_Template)   # replace the maxTorque property with the Reference_Template
+            robot.set_current(temp)
+        t = i.search("maxTorque")   
+        print("content: ",t[0],"\tstage: ",t[0].stage, "\tparent name: ",t[0].parent.search("name")[0])
+
+
+# #==============================================================================
+# #                         # Save the Robot
+# #==============================================================================
+#     # save the robot structure to a file
     robot.save_robot()
 
 
