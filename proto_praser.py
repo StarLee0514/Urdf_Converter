@@ -170,6 +170,13 @@ class structure:
     def add_child(self, child):
         self.children.append(child)
     
+    def update(self, new_structure):
+        self.name = new_structure.name
+        self.DEF = new_structure.DEF
+        self.stage = new_structure.stage
+        self.children = new_structure.children
+        self.parent = new_structure.parent
+    
     # search the structure with the given name
     def search(self, name):
         result_list = []
@@ -179,6 +186,9 @@ class structure:
             result_list += child.search(name)
         return result_list
 
+    def copy(self):
+        return self.__class__(self.name, self.parent, self.DEF, self.stage)
+    
     def __str__(self):
         return f"{self.name} {self.attributes} {self.children}"
 
@@ -190,7 +200,6 @@ class Node(structure):
     # for parts starts with '{' and ends with '}'
     def __init__(self, name, parent, DEF = None, stage = 0):
         super().__init__(name, parent, stage, DEF)
-        self.children = []
     
     # get the self information only
     def get_self_only(self):
@@ -243,13 +252,20 @@ class property(structure):
     def get_self_only(self):
         return str(self)
 
+    def update(self, new_property):
+        super().update(new_property)
+        self.content = new_property.content
+
     def __str__(self):
         tab = "  " * self.stage
         s = tab + f"{self.name} {self.content}"+"\n"
         return s
     def __dict__(self):
         return {self.name: self.content, "structure_type": "property"}
-
+    
+    def copy(self):
+        return self.__class__(self.name, self.parent, self.stage, self.content)
+    
 class container(structure):
     # container class is used to store the container information
     # for parts starts with '[' and ends with ']'
